@@ -5,6 +5,10 @@ using UnityEngine.Tilemaps;
 
 public class GridController : MonoBehaviour
 {
+    [Header("Grid settings")]
+    public Vector2Int GridStartAnchor;
+    public Vector2Int GridSize;
+
     [SerializeField]
     private Grid grid;
 
@@ -22,27 +26,43 @@ public class GridController : MonoBehaviour
 
     private List<GridTileData> currentTiles = new List<GridTileData>();
 
+    private Coroutine fallCoroutine;
+
     // Start is called before the first frame update
     void Start()
     {
-
+        Random.InitState(5);
+        for (int k = 0; k < GridSize.x; k++)
+        {
+            for (int i = 0; i < GridSize.y; i++)
+            {
+                currentTiles.Add(new GridTileData(new Vector3Int(GridStartAnchor.x - k, GridStartAnchor.y + i, 0), null));
+            }
+        }
+        fallCoroutine = StartCoroutine(ProcessTilesFalling(currentTiles));
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.Mouse0))
+        if (fallCoroutine == null)
         {
-            SelectTiles();
-        }
-        else
-        {
-            if(currentTiles.Count >= 3)
+            if (Input.GetKey(KeyCode.Mouse0))
             {
-                highlightMap.ClearAllTiles();
-                //maybe add small effect on highlight map here?!
-
-
+                SelectTiles();
+            }
+            else
+            {
+                if (currentTiles.Count >= 1)
+                {
+                    highlightMap.ClearAllTiles();
+                    if (currentTiles.Count >= 3)
+                    {
+                        fallCoroutine = StartCoroutine(ProcessTilesFalling(currentTiles));
+                        //maybe add small effect on highlight map here?!
+                    }
+                    currentTiles.Clear();
+                }
             }
         }
     }
@@ -74,13 +94,72 @@ public class GridController : MonoBehaviour
                         highlightMap.SetTile(selectedTileData.GridPosition, highlightTile);
                     }
                 }
+                else
+                {
+                    if (currentTileData.GridPosition != selectedTileData.GridPosition)
+                    {
+                        if (selectedTileData.GridPosition == currentTiles[currentTiles.Count - 2].GridPosition)
+                        {
+                            highlightMap.SetTile(currentTileData.GridPosition, null);
+                            currentTiles.Remove(currentTileData);
+                        }
+                    }
+                }
             }
         }
     }
 
-    private IEnumerator ProcessTilesFalling()
+    private void SpawnNewRandomTile(Vector3Int spawnPosition)
     {
+        Tile tile = colorTiles[Random.Range(0, colorTiles.Length)];
+        map.SetTile(spawnPosition, tile);
+    }
 
-        yield return new WaitForSeconds(0.5f);
+    private IEnumerator ProcessTilesFalling(List<GridTileData> tilesToReplace)
+    {
+        List<Vector3Int> emptyGridPositions = new List<Vector3Int>();
+        for (int i = 0; i < tilesToReplace.Count; i++)
+        {
+            var tilePosition = tilesToReplace[i].GridPosition;
+
+            map.SetTile(tilePosition, null);
+            emptyGridPositions.Add(tilePosition);
+        }
+        tilesToReplace.Clear();
+        List<Vector3Int> removedGridPositions = new List<Vector3Int>();
+
+        emptyGridPositions.Sort(new CustomVector3IntComparer());
+
+        while (emptyGridPositions.Count > 0)
+        {
+            yield return new WaitForSeconds(0.5f);
+            for (int i = 0; i < emptyGridPositions.Count; i++)
+            {
+                var gridPosition = emptyGridPositions[i];
+                if (gridPosition.x == GridStartAnchor.x)
+                {
+                    SpawnNewRandomTile(gridPosition);
+
+                    removedGridPositions.Add(gridPosition);
+                }
+                else
+                {
+                    gridPosition.x++;
+                    Tile fallingTile = map.GetTile<Tile>(gridPosition);
+                    if (fallingTile != null)
+                    {
+                        map.SetTile(gridPosition, null);
+                        map.SetTile(emptyGridPositions[i], fallingTile);
+                    }
+                    emptyGridPositions[i] = gridPosition;
+                }
+            }
+            for (int i = 0; i < removedGridPositions.Count; i++)
+            {
+                emptyGridPositions.Remove(removedGridPositions[i]);
+            }
+            removedGridPositions.Clear();
+        }
+        fallCoroutine = null;
     }
 }

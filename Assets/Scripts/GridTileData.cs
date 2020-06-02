@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class GridTileData
+public class GridTileData : IEquatable<GridTileData>
 {
     public Vector3Int GridPosition;
     public Tile Tile;
@@ -10,6 +11,17 @@ public class GridTileData
     {
         GridPosition = positiion;
         Tile = tile;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as GridTileData);
+    }
+
+    public bool Equals(GridTileData other)
+    {
+        return other != null &&
+               GridPosition.Equals(other.GridPosition);
     }
 
     public bool IsTileValidNeighbor(GridTileData other)
