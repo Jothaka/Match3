@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Unity;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class CustomVector3IntComparer : IComparer<Vector3Int>
+public sealed class CustomVector3IntComparer : IComparer<Vector3Int>
 {
     public int Compare(Vector3Int x, Vector3Int y)
     {

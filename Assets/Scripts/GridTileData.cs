@@ -1,8 +1,8 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class GridTileData : IEquatable<GridTileData>
+public class GridTileData 
 {
     public Vector3Int GridPosition;
     public Tile Tile;
@@ -15,13 +15,13 @@ public class GridTileData : IEquatable<GridTileData>
 
     public override bool Equals(object obj)
     {
-        return Equals(obj as GridTileData);
+        return obj is GridTileData data &&
+               GridPosition.Equals(data.GridPosition);
     }
 
-    public bool Equals(GridTileData other)
+    public override int GetHashCode()
     {
-        return other != null &&
-               GridPosition.Equals(other.GridPosition);
+        return -172710810 + GridPosition.GetHashCode();
     }
 
     public bool IsTileValidNeighbor(GridTileData other)
@@ -56,5 +56,15 @@ public class GridTileData : IEquatable<GridTileData>
         }
 
         return result;
+    }
+
+    public static bool operator ==(GridTileData left, GridTileData right)
+    {
+        return EqualityComparer<GridTileData>.Default.Equals(left, right);
+    }
+
+    public static bool operator !=(GridTileData left, GridTileData right)
+    {
+        return !(left == right);
     }
 }
