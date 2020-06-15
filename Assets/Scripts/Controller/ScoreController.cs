@@ -15,12 +15,19 @@ public class ScoreController : MonoBehaviour
     private int comboTrigger = 5;
 
     private int comboCounter = 0;
+    private int currentHighscore;
 
     public void SetGameConfig(GameConfiguration config)
     {
         blockRemovePoints = config.BlockRemovePoints;
         bonusPointsForExtraBlocks = config.BonusPointsForExtraBlocks;
         comboTrigger = config.ComboTrigger;
+    }
+
+    public void SetLocalHighscore(SaveGame save)
+    {
+        if (save != null)
+            View.SetCurrentHighscore(save.Score);
     }
 
     public void SetScoreForRemovedBlocks(int blocksRemovedAmount)
@@ -45,6 +52,12 @@ public class ScoreController : MonoBehaviour
         }
 
         Score += scoreThisMove;
+        if(Score > currentHighscore)
+        {
+            View.SetCurrentHighscore(Score);
+            currentHighscore = Score;
+        }    
+
         View.SetScore(Score, scoreThisMove);
     }
 

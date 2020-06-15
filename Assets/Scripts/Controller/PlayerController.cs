@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     public GridController GridController;
     public HighlightView Highlight;
 
+    private IInputComponent inputComponent;
+
     private List<GridTileData> currentTiles = new List<GridTileData>();
 
     private bool interactionAllowed = false;
@@ -22,7 +24,7 @@ public class PlayerController : MonoBehaviour
     {
         if (interactionAllowed)
         {
-            if (Input.GetKey(KeyCode.Mouse0))
+            if (inputComponent.IsButtonPressed())
             {
                 SelectTiles();
             }
@@ -43,6 +45,11 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void SetInputComponent(IInputComponent input)
+    {
+        inputComponent = input;
     }
 
     private void SelectTiles()

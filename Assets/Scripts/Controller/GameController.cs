@@ -20,6 +20,9 @@ public class GameController : MonoBehaviour
         allowedMoves = Config.MovesAmount;
         Player.OnBlocksRemoved += OnPlayerMove;
         Score.SetGameConfig(Config);
+
+        SetPlayerInput();
+        SaveGame saveGame = HighscoreUtility.LoadHighscore();
     }
 
     //Triggered by UnityUI
@@ -34,6 +37,18 @@ public class GameController : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
+    //extend for other platform input e.g. android
+    private void SetPlayerInput()
+    {
+        switch (Application.platform)
+        {
+            case RuntimePlatform.WindowsPlayer:
+            case RuntimePlatform.WindowsEditor:
+                Player.SetInputComponent(new MouseInputComponent());
+                break;
+        }
+    }
+
     private void OnPlayerMove(int blocksRemoved)
     {
         Score.SetScoreForRemovedBlocks(blocksRemoved);
@@ -42,6 +57,17 @@ public class GameController : MonoBehaviour
         {
             Player.enabled = false;
             Score.HideScoring();
+
+            SaveGame saveGame = HighscoreUtility.LoadHighscore();
+            if (saveGame != null)
+            {
+                if (saveGame.Score < Score.Score)
+                    HighscoreUtility.SaveHighscore(new SaveGame() { Score = Score.Score });
+            }
+            else
+                HighscoreUtility.SaveHighscore(new SaveGame() { Score = Score.Score });
+
+
             View.SetFinalScore(Score.Score);
             View.SetGameViewVisibility(true);
         }
